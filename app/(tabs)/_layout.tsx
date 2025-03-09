@@ -27,19 +27,19 @@ export default function TabLayout() {
             paddingTop: 10,
             backgroundColor: colors.card,
           },
-          title: "World Map",
-          tabBarIcon: ({ size, color }) => <Globe2 size={size} color={color} />,
+          title: "Regions",
+          tabBarIcon: ({ size, color }) => <Map size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="regions"
+        name="map"
         options={{
           tabBarStyle: {
             paddingTop: 10,
             backgroundColor: colors.card,
           },
-          title: "Regions",
-          tabBarIcon: ({ size, color }) => <Map size={size} color={color} />,
+          title: "World Map",
+          tabBarIcon: ({ size, color }) => <Globe2 size={size} color={color} />,
         }}
       />
       <Tabs.Screen

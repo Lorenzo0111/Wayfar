@@ -14,7 +14,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "updates": {
-      "assetPatternsToBeBundled": ["assets/countries.json"]
+      "assetPatternsToBeBundled": [
+        "assets/countries.json",
+        "assets/regions.json"
+      ]
     },
     "ios": {
       "bundleIdentifier": "me.lorenzo0111.wayfar",
@@ -35,7 +38,10 @@
       "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["expo-router", "expo-asset"],
+    "plugins": [
+      "expo-router",
+      ["expo-asset", { "assets": ["assets/regions.json"] }]
+    ],
     "experiments": {
       "typedRoutes": true
     },
