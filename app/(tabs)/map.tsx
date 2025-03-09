@@ -3,7 +3,6 @@ import { useVisitedStore } from "@/store/useVisitedStore";
 import { useTheme } from "@/theme/ThemeProvider";
 import { reverseGeocode } from "@/utils/geo";
 import { countries } from "@/utils/regions";
-import * as FileSystem from "expo-file-system";
 import { Check, X } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -28,41 +27,16 @@ export default function WorldMapScreen() {
   const { visitedRegions } = useVisitedStore();
 
   useEffect(() => {
-    const filePath = FileSystem.documentDirectory + "regions.json";
+    const loadGeoJsonData = async () => {
+      try {
+        const data = require("@/assets/regions.json");
+        setGeoJsonData(data);
+      } catch (error) {
+        console.error("Failed to load GeoJSON data:", error);
+      }
+    };
 
-    FileSystem.getInfoAsync(filePath)
-      .then(async (fileInfo) => {
-        if (fileInfo.exists) {
-          console.log("File already exists, loading from storage");
-          const data = await FileSystem.readAsStringAsync(filePath);
-          setGeoJsonData(JSON.parse(data));
-        } else {
-          console.log("File doesn't exist, downloading...");
-          const downloadResumable = FileSystem.createDownloadResumable(
-            process.env.EXPO_REGIONS_URL!,
-            filePath,
-            {},
-            (downloadProgress) => {
-              console.log("Download Progress", downloadProgress);
-            },
-          );
-
-          downloadResumable
-            .downloadAsync()
-            .then(async (res) => {
-              if (res) {
-                const data = await FileSystem.readAsStringAsync(filePath);
-                setGeoJsonData(JSON.parse(data));
-              }
-            })
-            .catch((err) => {
-              console.error(err);
-            });
-        }
-      })
-      .catch((error) => {
-        console.error("Error checking if file exists:", error);
-      });
+    loadGeoJsonData();
   }, []);
 
   const handleMapPress = useCallback(async (e: MapPressEvent) => {
