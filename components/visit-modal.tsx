@@ -1,9 +1,17 @@
+import DatePicker from "@/components/date-picker";
 import { useVisitedStore } from "@/store/useVisitedStore";
 import { useTheme } from "@/theme/ThemeProvider";
-import { Check, X } from "lucide-react-native";
+import { Visit } from "@/types/visited";
+import { Check, Plus, Trash, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import DatePicker from "./date-picker";
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 interface VisitModalProps {
   isVisible: boolean;
@@ -23,10 +31,11 @@ export default function VisitModal({
   regionName,
 }: VisitModalProps) {
   const { colors } = useTheme();
-  const { addVisit, removeVisit, getVisit } = useVisitedStore();
+  const { addVisit, removeVisit, getVisits } = useVisitedStore();
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [isVisited, setIsVisited] = useState(false);
+  const [mode, setMode] = useState<"add" | "view">("add");
+  const [visits, setVisits] = useState<Visit[]>([]);
 
   const finalRegionCode = regionCode || countryCode;
   const finalRegionName = regionName || countryName;
@@ -34,19 +43,26 @@ export default function VisitModal({
   useEffect(() => {
     if (!isVisible) return;
 
-    const existingVisit = getVisit(finalRegionCode);
-    if (existingVisit) {
-      setIsVisited(true);
-      setStartDate(
-        existingVisit.dateFrom ? new Date(existingVisit.dateFrom) : null,
-      );
-      setEndDate(existingVisit.dateTo ? new Date(existingVisit.dateTo) : null);
+    const regionVisits = getVisits(finalRegionCode);
+    setVisits(regionVisits);
+
+    if (regionVisits.length > 0) {
+      setMode("view");
     } else {
-      setIsVisited(false);
-      setStartDate(null);
-      setEndDate(null);
+      setMode("add");
+      resetForm();
     }
-  }, [isVisible, finalRegionCode, getVisit]);
+  }, [isVisible, finalRegionCode, getVisits]);
+
+  const resetForm = () => {
+    setStartDate(null);
+    setEndDate(null);
+  };
+
+  const handleAddNew = () => {
+    setMode("add");
+    resetForm();
+  };
 
   const handleSave = () => {
     addVisit({
@@ -55,12 +71,44 @@ export default function VisitModal({
       dateFrom: startDate ? startDate.toISOString() : null,
       dateTo: endDate ? endDate.toISOString() : null,
     });
-    onClose();
+
+    setVisits(getVisits(finalRegionCode));
+    setMode("view");
+    resetForm();
   };
 
-  const handleRemove = () => {
-    removeVisit(finalRegionCode);
-    onClose();
+  const handleRemove = (id: string) => {
+    removeVisit(id);
+    setVisits(getVisits(finalRegionCode));
+
+    if (visits.length <= 1) {
+      onClose();
+    }
+  };
+
+  const renderVisit = ({ item }: { item: Visit }) => {
+    const from = item.dateFrom
+      ? new Date(item.dateFrom).toLocaleDateString()
+      : "Unknown";
+    const to = item.dateTo
+      ? new Date(item.dateTo).toLocaleDateString()
+      : "Present";
+
+    return (
+      <View style={[styles.visitItem, { backgroundColor: colors.card }]}>
+        <View style={styles.visitInfo}>
+          <Text style={[styles.visitDates, { color: colors.text }]}>
+            {from} → {to}
+          </Text>
+        </View>
+        <Pressable
+          style={[styles.deleteButton, { backgroundColor: colors.danger }]}
+          onPress={() => handleRemove(item.id!)}
+        >
+          <Trash size={16} color="white" />
+        </Pressable>
+      </View>
+    );
   };
 
   return (
@@ -70,11 +118,13 @@ export default function VisitModal({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+      <Pressable style={styles.modalOverlay}>
+        <Pressable
+          style={[styles.modalContent, { backgroundColor: colors.card }]}
+        >
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>
-              {isVisited ? "Edit Visit" : "Mark as Visited"}
+              {mode === "add" ? "Add Visit" : `Visits to ${finalRegionName}`}
             </Text>
             <Pressable style={styles.closeButton} onPress={onClose}>
               <X size={24} color={colors.secondaryText} />
@@ -90,50 +140,59 @@ export default function VisitModal({
             </Text>
           </View>
 
-          <View style={styles.dateSelectors}>
-            <DatePicker
-              label="Start Date"
-              date={startDate}
-              onChange={setStartDate}
-              clearable
-            />
-            <DatePicker
-              label="End Date"
-              date={endDate}
-              onChange={setEndDate}
-              clearable
-            />
-          </View>
+          {mode === "add" ? (
+            <View>
+              <View style={styles.dateSelectors}>
+                <DatePicker
+                  label="Start Date"
+                  date={startDate}
+                  onChange={setStartDate}
+                  clearable
+                />
+                <DatePicker
+                  label="End Date"
+                  date={endDate}
+                  onChange={setEndDate}
+                  clearable
+                />
+              </View>
 
-          <View style={styles.buttonContainer}>
-            {isVisited && (
-              <Pressable
-                style={[
-                  styles.button,
-                  styles.removeButton,
-                  { backgroundColor: colors.danger },
-                ]}
-                onPress={handleRemove}
-              >
-                <Text style={styles.buttonText}>Remove</Text>
-              </Pressable>
-            )}
-            <Pressable
-              style={[
-                styles.button,
-                styles.saveButton,
-                { backgroundColor: colors.success },
-              ]}
-              onPress={handleSave}
-            >
-              <Check size={20} color="white" />
-              <Text style={styles.buttonText}>
-                {isVisited ? "Update" : "Mark as Visited"}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
+              <View style={styles.buttonContainer}>
+                <Pressable
+                  style={[
+                    styles.button,
+                    styles.saveButton,
+                    { backgroundColor: colors.success },
+                  ]}
+                  onPress={handleSave}
+                >
+                  <Check size={20} color="white" />
+                  <Text style={styles.buttonText}>Save Visit</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.visitsContainer}>
+              <FlatList
+                data={visits}
+                renderItem={renderVisit}
+                keyExtractor={(item) => item.id!}
+                style={styles.visitsList}
+              />
+
+              <View style={styles.buttonContainer}>
+                <Pressable
+                  style={[styles.button, { backgroundColor: colors.primary }]}
+                  onPress={handleAddNew}
+                >
+                  <Plus size={20} color="white" />
+                  <Text style={styles.buttonText}>Add New Visit</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
@@ -141,24 +200,37 @@ export default function VisitModal({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 16,
   },
   modalContent: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 20,
-    paddingBottom: 40,
+    width: "100%",
+    maxWidth: 500,
+    borderRadius: 16,
+    padding: 24,
+    backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    maxHeight: "80%",
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "700",
+    color: "#0f172a",
   },
   closeButton: {
     padding: 4,
@@ -169,12 +241,15 @@ const styles = StyleSheet.create({
   locationName: {
     fontSize: 24,
     fontWeight: "700",
+    color: "#0f172a",
     marginBottom: 4,
   },
   countryName: {
     fontSize: 16,
+    color: "#64748b",
   },
   dateSelectors: {
+    gap: 16,
     marginBottom: 24,
   },
   buttonContainer: {
@@ -187,12 +262,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    minWidth: 120,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    gap: 8,
   },
   saveButton: {
-    backgroundColor: "#22c55e",
+    backgroundColor: "#10b981",
+    flex: 1,
   },
   removeButton: {
     backgroundColor: "#ef4444",
@@ -201,6 +277,34 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "600",
     fontSize: 16,
-    marginLeft: 8,
+  },
+  visitsContainer: {
+    maxHeight: 400,
+  },
+  visitsList: {
+    marginBottom: 16,
+    maxHeight: 300,
+  },
+  visitItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: "#f1f5f9",
+  },
+  visitInfo: {
+    flex: 1,
+  },
+  visitDates: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#0f172a",
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#ef4444",
   },
 });

@@ -20,7 +20,7 @@ import {
 
 export default function RegionsScreen() {
   const { colors } = useTheme();
-  const { visitedRegions, getVisit } = useVisitedStore();
+  const { visitedRegions, getVisits } = useVisitedStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnlyVisited, setShowOnlyVisited] = useState(false);
   const [expandedCountries, setExpandedCountries] = useState<
@@ -159,14 +159,24 @@ export default function RegionsScreen() {
         );
       }
 
-      const visit = getVisit(item.code);
+      const visits = getVisits(item.code);
+      const hasVisits = visits.length > 0;
+      const latestVisit = hasVisits
+        ? visits.sort((a, b) => {
+            if (!a.dateFrom) return 1;
+            if (!b.dateFrom) return -1;
+            return (
+              new Date(b.dateFrom).getTime() - new Date(a.dateFrom).getTime()
+            );
+          })[0]
+        : null;
 
       return (
         <Pressable
           style={[
             styles.regionCard,
             { backgroundColor: colors.card },
-            visitedRegions.includes(item.code) && [
+            hasVisits && [
               styles.visitedRegion,
               { backgroundColor: colors.visitedBackground },
             ],
@@ -177,18 +187,28 @@ export default function RegionsScreen() {
             <Text style={[styles.regionName, { color: colors.text }]}>
               {item.name}
             </Text>
-            {visit && (visit.dateFrom || visit.dateTo) && (
+            {latestVisit && (latestVisit.dateFrom || latestVisit.dateTo) && (
               <View style={styles.visitDates}>
                 <TripInfoCard
                   compact
-                  dateFrom={visit.dateFrom}
-                  dateTo={visit.dateTo}
+                  dateFrom={latestVisit.dateFrom}
+                  dateTo={latestVisit.dateTo}
                 />
+                {visits.length > 1 && (
+                  <Text
+                    style={[
+                      styles.visitsCount,
+                      { color: colors.secondaryText },
+                    ]}
+                  >
+                    +{visits.length - 1} more visits
+                  </Text>
+                )}
               </View>
             )}
           </View>
 
-          {visitedRegions.includes(item.code) && (
+          {hasVisits && (
             <View
               style={[styles.visitedBadge, { backgroundColor: colors.success }]}
             >
@@ -201,7 +221,7 @@ export default function RegionsScreen() {
     [
       colors,
       visitedRegions,
-      getVisit,
+      getVisits,
       handleRegionPress,
       toggleCountryExpanded,
     ],
@@ -375,5 +395,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 4,
+  },
+  visitsCount: {
+    fontSize: 12,
+    marginLeft: 8,
+    fontStyle: "italic",
+    color: "#64748b",
   },
 });

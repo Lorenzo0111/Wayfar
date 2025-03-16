@@ -119,7 +119,7 @@ export default function TripsScreen() {
           {visitsWithRegionInfo.length > 0 ? (
             <FlatList
               data={visitsWithRegionInfo}
-              keyExtractor={(item) => item.regionCode}
+              keyExtractor={(item) => item.id || item.regionCode}
               style={styles.tripsList}
               renderItem={({ item }) => (
                 <TripInfoCard

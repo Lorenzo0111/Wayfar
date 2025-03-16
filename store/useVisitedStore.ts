@@ -10,12 +10,10 @@ interface VisitedState {
   addCountry: (countryCode: string) => void;
   removeCountry: (countryCode: string) => void;
   addVisit: (visit: Visit) => void;
-  updateVisit: (
-    regionCode: string,
-    updates: Partial<Omit<Visit, "regionCode">>,
-  ) => void;
-  removeVisit: (regionCode: string) => void;
-  getVisit: (regionCode: string) => Visit | undefined;
+  updateVisit: (id: string, updates: Partial<Omit<Visit, "id">>) => void;
+  removeVisit: (id: string) => void;
+  getVisits: (regionCode: string) => Visit[];
+  getVisit: (id: string) => Visit | undefined;
   clearAll: () => void;
 }
 
@@ -42,17 +40,12 @@ export const useVisitedStore = create<VisitedState>()(
         })),
       addVisit: (visit) =>
         set((state) => {
-          const existingVisitIndex = state.visits.findIndex(
-            (v) => v.regionCode === visit.regionCode,
-          );
+          const visitWithId = {
+            ...visit,
+            id: visit.id || `${visit.regionCode}-${Date.now()}`,
+          };
 
-          let newVisits;
-          if (existingVisitIndex >= 0) {
-            newVisits = [...state.visits];
-            newVisits[existingVisitIndex] = visit;
-          } else {
-            newVisits = [...state.visits, visit];
-          }
+          const newVisits = [...state.visits, visitWithId];
 
           return {
             visits: newVisits,
@@ -64,11 +57,9 @@ export const useVisitedStore = create<VisitedState>()(
             ],
           };
         }),
-      updateVisit: (regionCode, updates) =>
+      updateVisit: (id, updates) =>
         set((state) => {
-          const visitIndex = state.visits.findIndex(
-            (visit) => visit.regionCode === regionCode,
-          );
+          const visitIndex = state.visits.findIndex((visit) => visit.id === id);
           if (visitIndex === -1) return state;
 
           const newVisits = [...state.visits];
@@ -76,13 +67,15 @@ export const useVisitedStore = create<VisitedState>()(
 
           return { visits: newVisits };
         }),
-      removeVisit: (regionCode) =>
+      removeVisit: (id) =>
         set((state) => {
-          const visit = state.visits.find((v) => v.regionCode === regionCode);
+          const visit = state.visits.find((v) => v.id === id);
           if (!visit) return state;
 
-          const newVisits = state.visits.filter(
-            (v) => v.regionCode !== regionCode,
+          const newVisits = state.visits.filter((v) => v.id !== id);
+
+          const hasOtherVisitsForRegion = newVisits.some(
+            (v) => v.regionCode === visit.regionCode,
           );
 
           const hasOtherVisitsForCountry = newVisits.some(
@@ -91,9 +84,11 @@ export const useVisitedStore = create<VisitedState>()(
 
           return {
             visits: newVisits,
-            visitedRegions: state.visitedRegions.filter(
-              (code) => code !== regionCode,
-            ),
+            visitedRegions: hasOtherVisitsForRegion
+              ? state.visitedRegions
+              : state.visitedRegions.filter(
+                  (code) => code !== visit.regionCode,
+                ),
             visitedCountries: hasOtherVisitsForCountry
               ? state.visitedCountries
               : state.visitedCountries.filter(
@@ -101,8 +96,11 @@ export const useVisitedStore = create<VisitedState>()(
                 ),
           };
         }),
-      getVisit: (regionCode) => {
-        return get().visits.find((visit) => visit.regionCode === regionCode);
+      getVisits: (regionCode) => {
+        return get().visits.filter((visit) => visit.regionCode === regionCode);
+      },
+      getVisit: (id) => {
+        return get().visits.find((visit) => visit.id === id);
       },
       clearAll: () =>
         set({

@@ -46,7 +46,6 @@ export default function DatePicker({
   };
 
   const handleChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    setShowPicker(false);
     if (event.type === "dismissed") return;
     onChange(selectedDate || null);
   };

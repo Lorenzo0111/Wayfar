@@ -3,15 +3,8 @@ import { useVisitedStore } from "@/store/useVisitedStore";
 import { useTheme } from "@/theme/ThemeProvider";
 import { reverseGeocode } from "@/utils/geo";
 import { countries } from "@/utils/regions";
-import { Check, X } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import MapView, { Geojson, MapPressEvent } from "react-native-maps";
 
 export default function WorldMapScreen() {
@@ -66,6 +59,10 @@ export default function WorldMapScreen() {
       regionName: region?.name || location.principalSubdivision,
     });
   }, []);
+
+  useEffect(() => {
+    if (selectedCountry) handleOpenVisitModal();
+  }, [selectedCountry]);
 
   const handleOpenVisitModal = () => {
     if (selectedCountry) setShowVisitModal(true);
@@ -123,28 +120,6 @@ export default function WorldMapScreen() {
           strokeColor={colors.text}
         />
       </MapView>
-
-      {selectedCountry && (
-        <View style={[styles.countryModal, { backgroundColor: colors.card }]}>
-          <Text style={[styles.countryName, { color: colors.text }]}>
-            {selectedCountry.regionName ?? selectedCountry.countryName}
-          </Text>
-          <View style={styles.buttonContainer}>
-            <Pressable
-              style={[styles.button, styles.cancelButton]}
-              onPress={() => setSelectedCountry(null)}
-            >
-              <X size={24} color="#fff" />
-            </Pressable>
-            <Pressable
-              style={[styles.button, styles.confirmButton]}
-              onPress={handleOpenVisitModal}
-            >
-              <Check size={24} color="#fff" />
-            </Pressable>
-          </View>
-        </View>
-      )}
 
       {selectedCountry && (
         <VisitModal
