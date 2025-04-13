@@ -20,10 +20,14 @@
       ]
     },
     "ios": {
+      "appleTeamId": "829NR3MP39",
       "bundleIdentifier": "me.lorenzo0111.wayfar",
       "supportsTablet": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.me.lorenzo0111.wayfar"]
       }
     },
     "android": {
@@ -40,7 +44,13 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-asset", { "assets": ["assets/regions.json"] }]
+      [
+        "expo-asset",
+        {
+          "assets": ["assets/regions.json", "assets/regions.json"]
+        }
+      ],
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": true
