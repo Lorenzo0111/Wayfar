@@ -25,8 +25,43 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="wayfar"/>
-        <data android:scheme="me.lorenzo0111.wayfar"/>
       </intent-filter>
     </activity>
+    <activity-alias android:name="me.lorenzo0111.wayfar.MainActivitydark" android:enabled="false" android:exported="true" android:icon="@mipmap/dark" android:targetActivity=".MainActivity" android:roundIcon="@mipmap/dark_round">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="wayfar"/>
+      </intent-filter>
+    </activity-alias>
+    <activity-alias android:name="me.lorenzo0111.wayfar.MainActivitylight" android:enabled="false" android:exported="true" android:icon="@mipmap/light" android:targetActivity=".MainActivity" android:roundIcon="@mipmap/light_round">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="wayfar"/>
+      </intent-filter>
+    </activity-alias>
+    <activity-alias android:name="me.lorenzo0111.wayfar.MainActivitytinted" android:enabled="false" android:exported="true" android:icon="@mipmap/tinted" android:targetActivity=".MainActivity" android:roundIcon="@mipmap/tinted_round">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="wayfar"/>
+      </intent-filter>
+    </activity-alias>
   </application>
 </manifest>

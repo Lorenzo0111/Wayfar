@@ -28,13 +28,18 @@
       },
       "entitlements": {
         "com.apple.security.application-groups": ["group.me.lorenzo0111.wayfar"]
+      },
+      "icon": {
+        "dark": "./assets/images/icon-dark.png",
+        "light": "./assets/images/icon-light.png",
+        "tinted": "./assets/images/icon-tinted.png"
       }
     },
     "android": {
       "package": "me.lorenzo0111.wayfar",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#1E1E1E"
+        "foregroundImage": "./assets/images/icon-tinted.png",
+        "backgroundColor": "#2E2E31"
       }
     },
     "web": {
@@ -50,7 +55,24 @@
           "assets": ["assets/regions.json", "assets/regions.json"]
         }
       ],
-      "@bacons/apple-targets"
+      "@bacons/apple-targets",
+      [
+        "@howincodes/expo-dynamic-app-icon",
+        {
+          "dark": {
+            "ios": "./assets/images/icon-dark.png",
+            "android": "./assets/images/icon-tinted.png"
+          },
+          "light": {
+            "ios": "./assets/images/icon-light.png",
+            "android": "./assets/images/icon-tinted.png"
+          },
+          "tinted": {
+            "ios": "./assets/images/icon-tinted.png",
+            "android": "./assets/images/icon-tinted.png"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
