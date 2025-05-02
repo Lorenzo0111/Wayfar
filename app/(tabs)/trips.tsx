@@ -2,21 +2,33 @@ import TripInfoCard from "@/components/trip-info";
 import { useVisitedStore } from "@/store/useVisitedStore";
 import { useTheme } from "@/theme/ThemeProvider";
 import { countries, regions } from "@/utils/regions";
-import { useMemo } from "react";
+import { setAppIcon } from "@howincodes/expo-dynamic-app-icon";
+import { ChevronDown, Moon, Palette, Sun } from "lucide-react-native";
+import { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Modal,
   Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+
+type AppIconVariant = "light" | "dark" | "tinted" | null;
 
 export default function TripsScreen() {
   const { clearAll, visitedCountries, visitedRegions, visits } =
     useVisitedStore();
   const { colors } = useTheme();
+  const [showIconSelector, setShowIconSelector] = useState(false);
+
+  const handleIconChange = (iconName: AppIconVariant) => {
+    setAppIcon(iconName);
+    setShowIconSelector(false);
+  };
 
   const visitsWithRegionInfo = useMemo(() => {
     return visits
@@ -155,6 +167,75 @@ export default function TripsScreen() {
             </View>
           )}
         </View>
+
+        <TouchableOpacity
+          style={styles.iconSelectorButton}
+          onPress={() => setShowIconSelector(true)}
+        >
+          <Text style={[styles.iconSelectorButtonText]}>Change App Icon</Text>
+        </TouchableOpacity>
+
+        <Modal
+          visible={showIconSelector}
+          transparent={true}
+          animationType="slide"
+        >
+          <View style={styles.modalContainer}>
+            <View
+              style={[styles.modalContent, { backgroundColor: colors.card }]}
+            >
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Select App Icon
+              </Text>
+              <TouchableOpacity
+                style={styles.iconOption}
+                onPress={() => handleIconChange("light")}
+              >
+                <Sun color={colors.primary} />
+                <Text style={[styles.iconLabel, { color: colors.text }]}>
+                  Light
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconOption}
+                onPress={() => handleIconChange("dark")}
+              >
+                <Moon color={colors.primary} />
+                <Text style={[styles.iconLabel, { color: colors.text }]}>
+                  Dark
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconOption}
+                onPress={() => handleIconChange("tinted")}
+              >
+                <Palette color={colors.primary} />
+                <Text style={[styles.iconLabel, { color: colors.text }]}>
+                  Tinted
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconOption}
+                onPress={() => handleIconChange(null)}
+              >
+                <ChevronDown color={colors.primary} />
+                <Text style={[styles.iconLabel, { color: colors.text }]}>
+                  Default
+                </Text>
+              </TouchableOpacity>
+              <Pressable
+                style={styles.closeButton}
+                onPress={() => setShowIconSelector(false)}
+              >
+                <Text
+                  style={[styles.closeButtonText, { color: colors.primary }]}
+                >
+                  Close
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -260,6 +341,60 @@ const styles = StyleSheet.create({
   },
   resetButtonText: {
     color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  iconSelectorButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    borderRadius: 12,
+    backgroundColor: "#2563eb",
+    marginTop: 16,
+  },
+  iconSelectorButtonText: {
+    color: "white",
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 16,
+  },
+  iconOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    width: "100%",
+  },
+  iconLabel: {
+    marginLeft: 8,
+    fontSize: 16,
+  },
+  closeButton: {
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#2563eb",
+  },
+  closeButtonText: {
     fontSize: 16,
     fontWeight: "600",
   },
